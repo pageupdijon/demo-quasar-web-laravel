@@ -1,3 +1,10 @@
 {
-    "title": "Quasar"
+    "title": "Quasar",
+    "repositories": {
+        "title": "Référientiels",
+        "selected_repository": "Référentiel selectionné",
+        "users": {
+            "title": "Utilisateurs"
+        }
+    }
 }

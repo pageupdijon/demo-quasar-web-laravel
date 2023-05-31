@@ -18,7 +18,7 @@ const quasarOptions = {
     },
     config: {
         brand: {
-            primary: '#3F5E60',
+            primary: 'rgba(75,92,119,0.67)',
             secondary: 'rgba(57,41,64,0.7)',
             accent: '#687E8D',
             dark: 'rgba(104,126,141,0.14)',

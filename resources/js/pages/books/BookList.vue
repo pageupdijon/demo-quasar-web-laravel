@@ -32,7 +32,7 @@
 import ViewLayout from "@/components/ViewLayout.vue";
 import RepositorySelector from "@/components/repositories/RepositorySelector.vue";
 
-let repository = {value: 'users', text :'Utilisateurs'}
+let repository = {value: 'books', text :'Livres'}
 
 </script>
 

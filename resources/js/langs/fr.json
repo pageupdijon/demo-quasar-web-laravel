@@ -5,6 +5,12 @@
         "selected_repository": "Référentiel selectionné",
         "users": {
             "title": "Utilisateurs"
+        },
+        "books": {
+            "title": "Livres"
+        },
+        "Products": {
+            "title": "Produits"
         }
     }
 }

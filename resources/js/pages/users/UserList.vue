@@ -2,7 +2,7 @@
     <view-layout>
 
         <template #header>
-            <div class="row flex-center">
+            <div class="row flex-center" style="padding-bottom: 20px">
                 <div class="header text-grey-8 col-11">{{ $t('repositories.title') }}</div>
             </div>
         </template>
@@ -20,6 +20,19 @@
                             </div>
                         </div>
 
+                        <div class="row" style="padding-top: 40px">
+                            <div class="text-bold text-grey-8 col-auto" style="margin-top: 10px">
+                                Filtres
+                            </div>
+                            <div class="col-3" style="margin-left: 30px">
+                                <q-input outlined dense debounce="300" v-model="filter" placeholder="Recherche">
+                                    <template v-slot:append>
+                                        <q-icon name="search" />
+                                    </template>
+                                </q-input>
+                            </div>
+                        </div>
+
                     </q-card-section>
 
                     <q-card-section>
@@ -29,16 +42,15 @@
                             :columns="headers"
                             :rows="items"
                             :loading="loading"
+                            :filter="filter"
                             row-key="id"
                             @request="onRequest"
                         >
-
                             <template v-slot:top-right>
-                                <q-input borderless dense debounce="300" v-model="filter" placeholder="Recherche">
-                                    <template v-slot:append>
-                                        <q-icon name="search" />
-                                    </template>
-                                </q-input>
+                                <q-btn label="Ajouter un utilisateur" color="green-7" @click="openCreationDialog">
+                                    &nbsp;
+                                        <q-icon name="add_circle" />
+                                </q-btn>
                             </template>
 
                             <template v-slot:body-cell-actions="props">
@@ -139,6 +151,38 @@
 
             </q-dialog>
 
+            <q-dialog v-model="creationDialog"
+                      persistent
+                      transition-show="scale"
+                      transition-hide="scale">
+
+                <q-card class="bg-radius report-style" style="width: 800px; height: 300px">
+
+                    <q-card-section class="bg-primary text-white">
+                        <div class="text-h6">Création d'un l'utilisateur</div>
+                    </q-card-section>
+
+
+                    <q-card-section class="bg-white">
+                        <div class="row flex-center q-col-gutter-md">
+                            <q-input  v-model="form.name" label="Nom / Prénom" class="col-6" />
+                            <q-input  v-model="form.username" label="Pseudo" class="col-6" />
+                            <q-input  v-model="form.email" label="Email" class="col-12" />
+                        </div>
+                    </q-card-section>
+
+                    <q-card-section class="bg-white absolute" style="bottom: 0; right: 10px">
+                        <q-btn label="annuler" color="grey-8" @click="closeCreationDialog"/>
+                        &nbsp;
+                        <q-btn label="valider" color="green-8" @click="createUser"/>
+                    </q-card-section>
+
+                </q-card>
+
+            </q-dialog>
+
+
+
 
         </template>
 
@@ -157,15 +201,23 @@ let repository = {value: 'users', text :'Utilisateurs'}
 
 let suppressionDialog = ref(false);
 let editionDialog = ref(false);
+let creationDialog = ref(false);
 
 let form = ref({})
 
 function closeSuppressionDialog(){
     suppressionDialog.value = false;
+    clearForm()
     resetSelectedUser();
 }
 function closeEditionDialog(){
     editionDialog.value = false;
+    clearForm()
+    resetSelectedUser();
+}
+function closeCreationDialog(){
+    creationDialog.value = false;
+    clearForm()
     resetSelectedUser();
 }
 
@@ -177,6 +229,7 @@ function deleteUser(){
     router.post(`users/${selectedUser.value.id}/delete`, {}, {
         onFinish: () => {
             closeSuppressionDialog()
+            clearForm()
         }
     })
 }
@@ -185,6 +238,15 @@ function editUser(){
     router.post(`users/${selectedUser.value.id}/edit`, form.value, {
         onFinish: () => {
             closeEditionDialog()
+            clearForm()
+        }
+    })
+}
+function createUser(){
+    router.post(`users/create`, form.value, {
+        onFinish: () => {
+            closeCreationDialog()
+            clearForm()
         }
     })
 }
@@ -202,7 +264,7 @@ let headers = ref([
         label: 'Nom / Prénom',
         field: 'name',
         sortable: true,
-        style: 'min-width: 400px; max-width:400px'
+        style: 'min-width: 200px; max-width:200px'
     },
     {
         name: 'username',
@@ -210,7 +272,7 @@ let headers = ref([
         label: 'Pseudo',
         field: 'username',
         sortable: true,
-        style: 'min-width: 400px; max-width:400px'
+        style: 'min-width: 200px; max-width:200px'
     },
     {
         name: 'email',
@@ -218,14 +280,14 @@ let headers = ref([
         label: 'Email',
         field: 'email',
         sortable: true,
-        style: 'min-width: 400px; max-width:400px'
+        style: 'min-width: 200px; max-width:200px'
     },
     {
         name: 'actions',
         align: 'left',
         label: 'Actions',
         sortable: false,
-        style: 'min-width: 300px; max-width:300px'
+        style: 'min-width: 300px; max-width:150px'
     },
 ]);
 
@@ -296,11 +358,20 @@ function openEditionDialog(props){
     selectedUser.value = props
     editionDialog.value = true
     form.value = {...props}
-    console.log(form.value)
 }
 function openSuppressionDialog(props){
     selectedUser.value = props
     suppressionDialog.value = true
+}
+
+function openCreationDialog(){
+    form.value = {}
+    selectedUser.value = null
+    creationDialog.value = true
+}
+
+function clearForm(){
+    form.value = {}
 }
 
 </script>

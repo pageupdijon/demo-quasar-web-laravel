@@ -132,12 +132,25 @@
                         <div class="text-h6">Édition de l'utilisateur</div>
                     </q-card-section>
 
-
                     <q-card-section class="bg-white">
                         <div class="row flex-center q-col-gutter-md">
-                            <q-input  v-model="form.name" label="Nom / Prénom" class="col-6" />
-                            <q-input  v-model="form.username" label="Pseudo" class="col-6" />
-                            <q-input  v-model="form.email" label="Email" class="col-12" />
+                            <q-input  v-model="form.name"
+                                      :error-message="errors['name']"
+                                      :error="hasErrors('name')"
+                                      label="Nom / Prénom"
+                                      class="col-6"/>
+
+                            <q-input  v-model="form.username"
+                                      :error-message="errors['username']"
+                                      :error="hasErrors('username')"
+                                      label="Pseudo"
+                                      class="col-6" />
+
+                            <q-input  v-model="form.email"
+                                      :error-message="errors['email']"
+                                      :error="hasErrors('email')"
+                                      label="Email"
+                                      class="col-12"/>
                         </div>
                     </q-card-section>
 
@@ -162,12 +175,25 @@
                         <div class="text-h6">Création d'un l'utilisateur</div>
                     </q-card-section>
 
-
                     <q-card-section class="bg-white">
                         <div class="row flex-center q-col-gutter-md">
-                            <q-input  v-model="form.name" label="Nom / Prénom" class="col-6" />
-                            <q-input  v-model="form.username" label="Pseudo" class="col-6" />
-                            <q-input  v-model="form.email" label="Email" class="col-12" />
+                            <q-input  v-model="form.name"
+                                      :error-message="errors['name']"
+                                      :error="hasErrors('name')"
+                                      label="Nom / Prénom"
+                                      class="col-6"/>
+
+                            <q-input  v-model="form.username"
+                                      :error-message="errors['username']"
+                                      :error="hasErrors('username')"
+                                      label="Pseudo"
+                                      class="col-6" />
+
+                            <q-input  v-model="form.email"
+                                      :error-message="errors['email']"
+                                      :error="hasErrors('email')"
+                                      label="Email"
+                                      class="col-12" />
                         </div>
                     </q-card-section>
 
@@ -181,11 +207,7 @@
 
             </q-dialog>
 
-
-
-
         </template>
-
 
     </view-layout>
 </template>
@@ -196,37 +218,59 @@ import ViewLayout from "@/components/ViewLayout.vue";
 import RepositorySelector from "@/components/repositories/RepositorySelector.vue";
 import {computed, onMounted, ref} from "vue";
 import {router} from "@inertiajs/vue3";
+import { useQuasar } from 'quasar'
+const $q = useQuasar()
 
 let repository = {value: 'users', text :'Utilisateurs'}
 
-let suppressionDialog = ref(false);
-let editionDialog = ref(false);
-let creationDialog = ref(false);
+let props = defineProps({
+    datatable: {
+        type: Object,
+        required: true,
+    }
+})
 
-let form = ref({})
+let items = computed(() => {
+    return props.datatable?.items
+})
+
+let total = computed(() => {
+    return props.datatable?.total;
+})
+
+let suppressionDialog = ref(false);
 
 function closeSuppressionDialog(){
     suppressionDialog.value = false;
     clearForm()
     resetSelectedUser();
 }
-function closeEditionDialog(){
-    editionDialog.value = false;
-    clearForm()
-    resetSelectedUser();
-}
-function closeCreationDialog(){
-    creationDialog.value = false;
-    clearForm()
-    resetSelectedUser();
-}
 
-function resetSelectedUser(){
-    selectedUser.value = null;
+function openSuppressionDialog(props){
+    selectedUser.value = props
+    suppressionDialog.value = true
 }
 
 function deleteUser(){
     router.post(`users/${selectedUser.value.id}/delete`, {}, {
+        onSuccess: () => {
+            $q.notify({
+                type: 'positive',
+                message: "L'utilisateur a été supprimé",
+                position: "top",
+                textColor: 'white',
+                icon: 'info'
+            })
+        },
+        onError: () => {
+            $q.notify({
+                type: 'negative',
+                message: "Erreur lors de la suppression de l'utilisateur",
+                position: "top",
+                textColor: 'white',
+                icon: 'info'
+            })
+        },
         onFinish: () => {
             closeSuppressionDialog()
             clearForm()
@@ -234,21 +278,103 @@ function deleteUser(){
     })
 }
 
+let editionDialog = ref(false);
+
+function closeEditionDialog(){
+    editionDialog.value = false;
+    clearErrors()
+    clearForm()
+    resetSelectedUser();
+}
+
+function openEditionDialog(props){
+    selectedUser.value = props
+    editionDialog.value = true
+    form.value = {...props}
+}
+
+
 function editUser(){
     router.post(`users/${selectedUser.value.id}/edit`, form.value, {
-        onFinish: () => {
+        onSuccess: () => {
+            $q.notify({
+                type: 'positive',
+                message: "L'utilisateur a été modifié",
+                position: "top",
+                textColor: 'white',
+                icon: 'info'
+            })
             closeEditionDialog()
             clearForm()
-        }
+        },
+        onError: (server_errors) => {
+            errors.value = server_errors
+            $q.notify({
+                type: 'negative',
+                message: "Erreur lors de la modification de l'utilisateur",
+                position: "top",
+                textColor: 'white',
+                icon: 'info'
+            })
+        },
     })
 }
+
+let creationDialog = ref(false);
+
+function closeCreationDialog(){
+    creationDialog.value = false;
+    clearErrors()
+    clearForm()
+    resetSelectedUser();
+}
+
+function openCreationDialog(){
+    form.value = {}
+    selectedUser.value = null
+    creationDialog.value = true
+}
+
 function createUser(){
     router.post(`users/create`, form.value, {
-        onFinish: () => {
+        onSuccess: () => {
+            $q.notify({
+                type: 'positive',
+                message: "L'utilisateur a été créé",
+                position: "top",
+                textColor: 'white',
+                icon: 'info'
+            })
             closeCreationDialog()
             clearForm()
-        }
+        },
+        onError: (server_errors) => {
+            errors.value = server_errors
+            $q.notify({
+                type: 'negative',
+                message: "Erreur lors de la création de l'utilisateur",
+                position: "top",
+                textColor: 'white',
+                icon: 'info'
+            })
+        },
     })
+}
+
+let form = ref({})
+
+function clearForm(){
+    form.value = {}
+}
+
+let errors = ref([])
+
+function hasErrors(field){
+    return errors.value[field]?.length > 0
+}
+
+function clearErrors(){
+    errors.value = [];
 }
 
 let selectedUser = ref(null);
@@ -256,6 +382,10 @@ let selectedUser = ref(null);
 let selectedUserName = computed(() => {
     return selectedUser.value?.name ?? '-'
 })
+
+function resetSelectedUser(){
+    selectedUser.value = null;
+}
 
 let headers = ref([
     {
@@ -291,36 +421,34 @@ let headers = ref([
     },
 ]);
 
-let props = defineProps({
-    datatable: {
-        type: Object,
-        required: true,
-    }
-})
-
-let items = computed(() => {
-    return props.datatable?.items
-})
-
-let total = computed(() => {
-    return props.datatable?.total;
-})
 
 const filter = ref('')
 
 const loading = ref(false)
 
+function startLoading(){
+    loading.value = true
+}
+
+function stopLoading(){
+    loading.value = false
+}
+
 const pagination = ref({
-    sortBy: 'desc',
+    sortBy: 'name',
     descending: false,
     page: 1,
     rowsPerPage: 10,
     rowsNumber: null
 })
 
+function syncPagination(props){
+    pagination.value = props.pagination;
+}
+
 function reloadDatatable(){
     startLoading()
-    let data = {...pagination.value, ...filter.value}
+    let data = {...pagination.value, search : filter.value}
     router.get('/repositories/users', data, {
         preserveState: true,
         preserveScroll: true,
@@ -340,38 +468,6 @@ onMounted(() => {
 function onRequest (props) {
     syncPagination(props)
     reloadDatatable()
-}
-
-function startLoading(){
-    loading.value = true
-}
-
-function stopLoading(){
-    loading.value = false
-}
-
-function syncPagination(props){
-    pagination.value = props.pagination;
-}
-
-function openEditionDialog(props){
-    selectedUser.value = props
-    editionDialog.value = true
-    form.value = {...props}
-}
-function openSuppressionDialog(props){
-    selectedUser.value = props
-    suppressionDialog.value = true
-}
-
-function openCreationDialog(){
-    form.value = {}
-    selectedUser.value = null
-    creationDialog.value = true
-}
-
-function clearForm(){
-    form.value = {}
 }
 
 </script>

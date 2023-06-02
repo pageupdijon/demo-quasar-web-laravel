@@ -1,5 +1,5 @@
 <template>
-    <q-layout view="lHh lpR lFf">
+    <q-layout view="lHh lpR lFf" class="bg-grey-2">
 
         <header-layout
             :left-drawer-is-open="leftDrawerOpen"

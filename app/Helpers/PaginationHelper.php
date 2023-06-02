@@ -20,6 +20,8 @@ class PaginationHelper
         $validator = Validator::make($request->all(), [
             'page' => ['sometimes', 'nullable', 'integer', 'min:1'],
             'rowsPerPage' => ['sometimes', 'nullable', 'integer'],
+            'sortBy' => ['sometimes', 'nullable', 'string'],
+            'descending' => ['sometimes', 'nullable', 'in:true,false']
         ]);
 
         if ($validator->fails()) {
@@ -32,6 +34,12 @@ class PaginationHelper
         $rowPerPage = $pagination['rowsPerPage'] ?? 15;
         $offset = ($page - 1) * $rowPerPage;
         $total = $query->count();
+
+        if(isset($pagination['sortBy'])){
+            $direction = $pagination['descending'] === 'false' ? 'asc' : 'desc';
+            $column = $pagination['sortBy'];
+            $query = $query->orderBy($column, $direction);
+        }
 
         if(!$rowPerPage){
             $items = $query->get();

@@ -18,6 +18,13 @@
                             <div class="col-3" style="margin-left: 30px">
                                 <repository-selector :repository="repository"/>
                             </div>
+                            <div class="col-grow text-right">
+                                <q-btn label="action groupée"
+                                       color="grey-8"
+                                       v-if="hasSelectedItems"
+                                       @click="groupedAction"
+                                />
+                            </div>
                         </div>
 
                         <div class="row" style="padding-top: 40px">
@@ -25,11 +32,21 @@
                                 Filtres
                             </div>
                             <div class="col-3" style="margin-left: 30px">
-                                <q-input outlined dense debounce="300" v-model="filter" placeholder="Recherche">
+                                <q-input outlined dense debounce="300" v-model="search" placeholder="Recherche">
                                     <template v-slot:append>
                                         <q-icon name="search" />
                                     </template>
                                 </q-input>
+                            </div>
+                            <div class="col-2" style="margin-left: 30px">
+                                <q-select outlined dense v-model="filters.status"
+                                          @update:model-value="reloadDatatable"
+                                          :options="statuses"
+                                          option-label="text"
+                                          option-value="value"
+                                          clearable
+                                          label="Statut">
+                                </q-select>
                             </div>
                         </div>
 
@@ -42,8 +59,10 @@
                             :columns="headers"
                             :rows="items"
                             :loading="loading"
-                            :filter="filter"
+                            :filter="search"
                             row-key="id"
+                            selection="multiple"
+                            v-model:selected="selected"
                             @request="onRequest"
                         >
                             <template v-slot:top-right>
@@ -53,9 +72,15 @@
                                 </q-btn>
                             </template>
 
+                            <template v-slot:body-cell-active="props">
+                                <q-td :props="props">
+                                    <q-icon name="circle" color="green-7" v-if="props.row.active === true"/>
+                                    <q-icon v-else name="circle" color="red-8"/>
+                                </q-td>
+                            </template>
+
                             <template v-slot:body-cell-actions="props">
                                 <q-td :props="props">
-
                                     <q-btn
                                         color="light-blue-9"
                                         padding="sm"
@@ -68,7 +93,6 @@
                                             Éditer
                                         </q-tooltip>
                                     </q-btn>
-
                                     &nbsp;
                                     <q-btn
                                         color="red-8"
@@ -220,6 +244,11 @@ import {computed, onMounted, ref} from "vue";
 import {router} from "@inertiajs/vue3";
 import { useQuasar } from 'quasar'
 const $q = useQuasar()
+
+const statuses = ref([
+    {value: true, text :'Actif'},
+    {value: false, text :'Inactif'},
+])
 
 let repository = {value: 'users', text :'Utilisateurs'}
 
@@ -413,6 +442,14 @@ let headers = ref([
         style: 'min-width: 200px; max-width:200px'
     },
     {
+        name: 'active',
+        align: 'left',
+        label: 'Statut',
+        field: 'active',
+        sortable: true,
+        style: 'min-width: 100px; max-width:100px'
+    },
+    {
         name: 'actions',
         align: 'left',
         label: 'Actions',
@@ -422,7 +459,9 @@ let headers = ref([
 ]);
 
 
-const filter = ref('')
+const filters = ref({})
+
+let search = ref('')
 
 const loading = ref(false)
 
@@ -448,7 +487,7 @@ function syncPagination(props){
 
 function reloadDatatable(){
     startLoading()
-    let data = {...pagination.value, search : filter.value}
+    let data = {...pagination.value, search : search.value, filters : filters.value}
     router.get('/repositories/users', data, {
         preserveState: true,
         preserveScroll: true,
@@ -470,6 +509,16 @@ function onRequest (props) {
     reloadDatatable()
 }
 
+let selected = ref([])
+
+let hasSelectedItems = computed(() => {
+    return selected.value.length > 0
+})
+
+function groupedAction(){
+    console.log(selected.value)
+}
+
 </script>
 
 <style scoped lang="scss">
@@ -478,5 +527,4 @@ function onRequest (props) {
     font-size: 30px;
     padding: 20px 0 0 0;
 }
-
 </style>

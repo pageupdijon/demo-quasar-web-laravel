@@ -10,6 +10,11 @@ return [
                 'icon' => 'fa-solid fa-database',
                 'route' => '/repositories',
             ],
+            [
+                'title' => 'Divers',
+                'icon' => 'air',
+                'route' => '/divers',
+            ],
         ],
     ],
 ];

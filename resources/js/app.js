@@ -5,6 +5,8 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import {quasarOptions} from '@/config/quasar.js'
 import {locales} from "@/langs/locales.js";
 import { Quasar } from 'quasar'
+import VueApexCharts from "vue3-apexcharts";
+
 
 createInertiaApp({
     resolve: async name => {
@@ -19,6 +21,7 @@ createInertiaApp({
             .use(plugin)
             .use(locales)
             .use(Quasar, quasarOptions)
+            .use(VueApexCharts)
             .mount(el)
     },
 }).then(r => {});
